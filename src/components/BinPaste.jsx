@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+
 import { Copy, Share2, Save, Eye, Code, Download, Trash2, Moon, Sun } from 'lucide-react';
+import axios from '../network/axios';
+import Prism from 'prismjs'
+
+
 
 const BinPaste = () => {
   const [content, setContent] = useState('');
@@ -11,33 +17,55 @@ const BinPaste = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const { shortId,  } = useParams();
+
   const languages = [
     'text', 'javascript', 'python', 'java', 'cpp', 'html', 'css', 
-    'json', 'xml', 'sql', 'bash', 'php', 'ruby', 'go'
+    'json', 'xml', 'sql', 'bash', 'php', 'ruby', 'go', "csharp"
   ];
 
   // Load saved pastes from memory on component mount
+
   useEffect(() => {
-    const stored = JSON.parse(localStorage?.getItem('pastes') || '[]');
-    setSavedPastes(stored);
+    Prism.highlightAll()
+  }, [showPreview, isDarkMode])
+
+  useEffect(() => {
+    getPastes();
+
+    const language = searchParams.get('lan') || 'text';
+
+    setLanguage(language);
+
+    if (shortId) {
+      getPasteById(shortId)
+    }
+
   }, []);
 
-  const generateId = () => Math.random().toString(36).substr(2, 8);
-
-  const savePaste = () => {
+  const savePaste = async () => {
     if (!content.trim()) return;
     
     const newPaste = {
-      id: generateId(),
       title: title || `Untitled ${language}`,
       content,
       language,
       isPrivate,
-      createdAt: new Date().toISOString(),
-      views: 0
+      isBurnAfter: false,
+      tags: [],
     };
 
+    navigate('/bin');
+
+    const { data } = await createPaste(newPaste);
+
+    await copyToClipboard(`${window.location}/bin/${data.shortId}`);
+
     const updatedPastes = [newPaste, ...savedPastes.slice(0, 9)]; // Keep only 10 most recent
+
     setSavedPastes(updatedPastes);
     setCurrentPaste(newPaste);
     
@@ -46,26 +74,48 @@ const BinPaste = () => {
     setTitle('');
   };
 
+  const createPaste = async (paste) => {
+    try {
+      return await axios.post("/", paste);
+    } catch(error) {
+      console.log(error);
+    }
+  }
+
+  const getPasteById = async () => {
+    try {
+      const { data } = await axios.get(shortId);
+      setContent(data.content)
+      setTitle(data.title);
+      setLanguage(data.language);
+    } catch(error) {
+      console.log(error);
+    }
+  }
+
+  const getPastes = async () => {
+    try {
+      const { data } = await axios.get('recent');
+      const mappedPastes = data.map(item => ({
+        title: item.title,
+        language: item.language,
+        content: item.content,
+        createdAt: item.createdAt,
+        views: item.viewCount,
+        isPrivate: false
+      }))
+      setSavedPastes(mappedPastes);
+    } catch(error) {
+      console.log(error);
+    }
+  }
+
   const loadPaste = (paste) => {
     setCurrentPaste(paste);
     setContent(paste.content);
     setTitle(paste.title);
     setLanguage(paste.language);
     setIsPrivate(paste.isPrivate);
-    
-    // Increment view count
-    const updatedPastes = savedPastes.map(p => 
-      p.id === paste.id ? { ...p, views: p.views + 1 } : p
-    );
-    setSavedPastes(updatedPastes);
-  };
-
-  const deletePaste = (id) => {
-    const updatedPastes = savedPastes.filter(p => p.id !== id);
-    setSavedPastes(updatedPastes);
-    if (currentPaste?.id === id) {
-      setCurrentPaste(null);
-    }
   };
 
   const copyToClipboard = async (text) => {
@@ -86,22 +136,6 @@ const BinPaste = () => {
     URL.revokeObjectURL(url);
   };
 
-  const getSyntaxHighlighting = (text, lang) => {
-    // Basic syntax highlighting for demonstration
-    if (lang === 'javascript' || lang === 'json') {
-      return text
-        .replace(/(".*?")/g, '<span style="color: #98c379;">$1</span>')
-        .replace(/\b(function|const|let|var|if|else|for|while|return)\b/g, '<span style="color: #c678dd;">$1</span>')
-        .replace(/\b(\d+)\b/g, '<span style="color: #d19a66;">$1</span>');
-    }
-    if (lang === 'python') {
-      return text
-        .replace(/(".*?")/g, '<span style="color: #98c379;">$1</span>')
-        .replace(/\b(def|class|if|else|elif|for|while|import|from|return|try|except)\b/g, '<span style="color: #c678dd;">$1</span>')
-        .replace(/\b(\d+)\b/g, '<span style="color: #d19a66;">$1</span>');
-    }
-    return text;
-  };
 
   return (
     <div className={`min-h-screen transition-all duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
@@ -126,8 +160,9 @@ const BinPaste = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
           {/* Main Editor */}
           <div className="lg:col-span-3 space-y-4">
             {/* Controls */}
@@ -137,6 +172,7 @@ const BinPaste = () => {
                   type="text"
                   placeholder="Paste title..."
                   value={title}
+                  defaultValue={''}
                   onChange={(e) => setTitle(e.target.value)}
                   className={`px-4 py-2 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'} focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
                 />
@@ -155,6 +191,7 @@ const BinPaste = () => {
                   <input
                     type="checkbox"
                     checked={isPrivate}
+                    defaultValue={false}
                     onChange={(e) => setIsPrivate(e.target.checked)}
                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
                   />
@@ -173,8 +210,8 @@ const BinPaste = () => {
 
             {/* Editor/Preview */}
             <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl overflow-hidden`}>
-              {showPreview ? (
-                <div className="p-4">
+              
+                <div className={`p-4 ${showPreview ? 'block' : 'hidden'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold">{title || 'Preview'}</h3>
                     <div className="flex space-x-2">
@@ -192,16 +229,14 @@ const BinPaste = () => {
                       </button>
                     </div>
                   </div>
-                  <pre className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} p-4 rounded-lg overflow-auto max-h-96 text-sm font-mono`}>
+                  <pre className={`${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'} language-${language} p-4 rounded-lg overflow-auto text-sm font-mono h-full`}>
                     <code
-                      dangerouslySetInnerHTML={{
-                        __html: getSyntaxHighlighting(content, language)
-                      }}
-                    />
+                      className={`language-${language}`}
+                    >{content}</code>
                   </pre>
                 </div>
-              ) : (
-                <div className="relative">
+
+                <div className={`relative ${showPreview ? 'hidden': 'block'}`}>
                   <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -219,7 +254,6 @@ const BinPaste = () => {
                     </button>
                   </div>
                 </div>
-              )}
             </div>
           </div>
 
