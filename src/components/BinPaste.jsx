@@ -106,6 +106,9 @@ const BinPaste = () => {
       setExpiresAt(data.expiresAt);
     } catch(error) {
       console.log(error);
+      if (error.response.status === 404) {
+        navigate('/not-found', { state: { isDarkMode } });
+      }
     }
   }
 
