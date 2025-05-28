@@ -11,7 +11,7 @@ import {
   Info 
 } from 'lucide-react';
 
-const ExpiryDropdown = ({ value = 'never', onChange, isDarkMode = true, className = "" }) => {
+const ExpiryDropdown = ({ value = 'never', onChange, isDarkMode = true, className = "", expiresAt, createdAt }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -244,7 +244,18 @@ const ExpiryDropdown = ({ value = 'never', onChange, isDarkMode = true, classNam
       };
     }
 
+    if (expiresAt) {
+        let expiresIn = new Date(expiresAt);
+        let createdDate = new Date(createdAt);
+        return {
+            created: createdDate.toLocaleString(),
+            expires: expiresIn.toLocaleString(),
+            description: `This paste will be automatically deleted at ${expiresIn}}.`
+        }
+    }
+
     const minutes = parseInt(value);
+
     const expireDate = new Date(now.getTime() + minutes * 60000);
     
     const timeUnitMap = {

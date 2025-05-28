@@ -17,6 +17,8 @@ const BinPaste = () => {
   const [currentPaste, setCurrentPaste] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
+  const [expiresAt, setExpiresAt] = useState('');
+  const [createdAt, setCreatedAt] = useState('');
 
   const [searchParams] = useSearchParams();
 
@@ -52,7 +54,7 @@ const BinPaste = () => {
     if (shortId) {
       getPasteById(shortId)
     }
-  }, [shortId])
+  }, [shortId]);
 
   const savePaste = async () => {
     if (!content.trim()) return;
@@ -63,7 +65,7 @@ const BinPaste = () => {
       language,
       isPrivate,
       isBurnAfter: false,
-      tags: [],
+      ExpiresAfterInMinutes: expiryOption !== 'never' ? expiryOption : null
     };
 
     navigate('/bin');
@@ -99,6 +101,9 @@ const BinPaste = () => {
       setTitle(data.title);
       setLanguage(data.language);
       setIsPrivate(data.isPrivate);
+      setExpiryOption(data.expiresInMinutes ?? 'never');
+      setCreatedAt(data.createdAt);
+      setExpiresAt(data.expiresAt);
     } catch(error) {
       console.log(error);
     }
@@ -217,7 +222,8 @@ const BinPaste = () => {
               isDarkMode={isDarkMode}
               onChange={(option) => setExpiryOption(option)}
               value={expiryOption}
-              
+              createdAt={createdAt}
+              expiresAt={expiresAt}
             />
             {/* Editor/Preview */}
             <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl overflow-hidden`}>
@@ -281,7 +287,6 @@ const BinPaste = () => {
                       key={paste?.shortId}
                       to={`/bin/${paste?.shortId}`}
                       className='p-1'
-                      //onClick={() => loadPaste(paste)}
                     >
                       <div
                         className={`p-3 rounded-lg border cursor-pointer transition-all hover:scale-105 ${currentPaste?.id === paste.id ? 'border-purple-500 bg-purple-500 bg-opacity-10' : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}
