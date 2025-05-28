@@ -17,7 +17,7 @@ const BinPaste = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
 
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const { shortId,  } = useParams();
@@ -68,10 +68,12 @@ const BinPaste = () => {
 
     await copyToClipboard(`${window.origin}/bin/${data.shortId}`);
 
-    const updatedPastes = [newPaste, ...savedPastes.slice(0, 9)]; // Keep only 10 most recent
+    if (!isPrivate) {
+      const updatedPastes = [newPaste, ...savedPastes.slice(0, 9)]; // Keep only 10 most recent
+      setSavedPastes(updatedPastes);
+      setCurrentPaste(newPaste);
+    }
 
-    setSavedPastes(updatedPastes);
-    setCurrentPaste(newPaste);
     
     // Clear form
     setContent('');
@@ -92,6 +94,7 @@ const BinPaste = () => {
       setContent(data.content)
       setTitle(data.title);
       setLanguage(data.language);
+      setIsPrivate(data.isPrivate);
     } catch(error) {
       console.log(error);
     }
@@ -101,12 +104,13 @@ const BinPaste = () => {
     try {
       const { data } = await axios.get('recent');
       const mappedPastes = data.map(item => ({
+        id: item.id,
         title: item.title,
         language: item.language,
         content: item.content,
         createdAt: item.createdAt,
         views: item.viewCount,
-        isPrivate: false,
+        isPrivate: item.isPrivate,
         shortId: item.shortId
       }))
       setSavedPastes(mappedPastes);
@@ -114,14 +118,6 @@ const BinPaste = () => {
       console.log(error);
     }
   }
-
-  const loadPaste = (paste) => {
-    setCurrentPaste(paste);
-    setContent(paste.content);
-    setTitle(paste.title);
-    setLanguage(paste.language);
-    setIsPrivate(paste.isPrivate);
-  };
 
   const copyToClipboard = async (text) => {
     try {
@@ -177,7 +173,6 @@ const BinPaste = () => {
                   type="text"
                   placeholder="Paste title..."
                   value={title}
-                  defaultValue={''}
                   onChange={(e) => setTitle(e.target.value)}
                   className={`px-4 py-2 rounded-lg border ${isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-500'} focus:ring-2 focus:ring-purple-500 focus:border-transparent`}
                 />
@@ -196,7 +191,7 @@ const BinPaste = () => {
                   <input
                     type="checkbox"
                     checked={isPrivate}
-                    defaultValue={false}
+                    value={isPrivate}
                     onChange={(e) => setIsPrivate(e.target.checked)}
                     className="w-4 h-4 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500"
                   />
@@ -272,8 +267,8 @@ const BinPaste = () => {
                 ) : (
                   savedPastes.map(paste => (
                     <Link
+                      key={paste?.shortId}
                       to={`/bin/${paste?.shortId}`}
-                      key={paste.id}
                       className='p-1'
                       //onClick={() => loadPaste(paste)}
                     >
