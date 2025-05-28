@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Copy, Share2, Save, Eye, Code, Download, Trash2, Moon, Sun } from 'lucide-react';
 import axios from '../network/axios';
 import Prism from 'prismjs'
+import ExpiryDropdown from './ExpiryDropdown';
 
 
 
@@ -18,6 +19,9 @@ const BinPaste = () => {
   const [showPreview, setShowPreview] = useState(false);
 
   const [searchParams] = useSearchParams();
+
+  const [expiryOption, setExpiryOption] = useState('never');
+
   const navigate = useNavigate();
 
   const { shortId,  } = useParams();
@@ -186,6 +190,7 @@ const BinPaste = () => {
                     <option key={lang} value={lang}>{lang.toUpperCase()}</option>
                   ))}
                 </select>
+
                 
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -208,6 +213,12 @@ const BinPaste = () => {
               </div>
             </div>
 
+            <ExpiryDropdown
+              isDarkMode={isDarkMode}
+              onChange={(option) => setExpiryOption(option)}
+              value={expiryOption}
+              
+            />
             {/* Editor/Preview */}
             <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border rounded-xl overflow-hidden`}>
               
