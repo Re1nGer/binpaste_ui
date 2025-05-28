@@ -62,7 +62,7 @@ const BinPaste = () => {
 
     const { data } = await createPaste(newPaste);
 
-    await copyToClipboard(`${window.location}/bin/${data.shortId}`);
+    await copyToClipboard(`${window.origin}/bin/${data.shortId}`);
 
     const updatedPastes = [newPaste, ...savedPastes.slice(0, 9)]; // Keep only 10 most recent
 
