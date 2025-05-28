@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { Copy, Share2, Save, Eye, Code, Download, Trash2, Moon, Sun } from 'lucide-react';
 import axios from '../network/axios';
@@ -40,11 +40,15 @@ const BinPaste = () => {
 
     setLanguage(language);
 
+
+  }, []);
+
+
+  useEffect(() => {
     if (shortId) {
       getPasteById(shortId)
     }
-
-  }, []);
+  }, [shortId])
 
   const savePaste = async () => {
     if (!content.trim()) return;
@@ -102,7 +106,8 @@ const BinPaste = () => {
         content: item.content,
         createdAt: item.createdAt,
         views: item.viewCount,
-        isPrivate: false
+        isPrivate: false,
+        shortId: item.shortId
       }))
       setSavedPastes(mappedPastes);
     } catch(error) {
@@ -266,29 +271,34 @@ const BinPaste = () => {
                   <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>No saved pastes yet</p>
                 ) : (
                   savedPastes.map(paste => (
-                    <div
+                    <Link
+                      to={`/bin/${paste?.shortId}`}
                       key={paste.id}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all hover:scale-105 ${currentPaste?.id === paste.id ? 'border-purple-500 bg-purple-500 bg-opacity-10' : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}
-                      onClick={() => loadPaste(paste)}
+                      className='p-1'
+                      //onClick={() => loadPaste(paste)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{paste.title}</p>
-                          <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {paste.language.toUpperCase()} • {paste.views} views
-                          </p>
+                      <div
+                        className={`p-3 rounded-lg border cursor-pointer transition-all hover:scale-105 ${currentPaste?.id === paste.id ? 'border-purple-500 bg-purple-500 bg-opacity-10' : (isDarkMode ? 'border-gray-700 hover:border-gray-600' : 'border-gray-200 hover:border-gray-300')}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{paste.title}</p>
+                            <p className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {paste.language.toUpperCase()} • {paste.views} views
+                            </p>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deletePaste(paste.id);
+                            }}
+                            className={`p-1 rounded hover:bg-red-500 hover:bg-opacity-20 ${isDarkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deletePaste(paste.id);
-                          }}
-                          className={`p-1 rounded hover:bg-red-500 hover:bg-opacity-20 ${isDarkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
                       </div>
-                    </div>
+                    </Link>
                   ))
                 )}
               </div>
