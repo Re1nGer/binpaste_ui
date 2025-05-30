@@ -60,6 +60,7 @@ const BinPaste = () => {
     if (!content.trim()) return;
     
     const newPaste = {
+      createdAt: new Date().toLocaleString(),
       title: title || `Untitled ${language}`,
       content,
       language,
@@ -68,18 +69,18 @@ const BinPaste = () => {
       ExpiresAfterInMinutes: expiryOption !== 'never' ? expiryOption : null
     };
 
-    navigate('/bin');
-
     const { data } = await createPaste(newPaste);
+
+    newPaste.shortId = data.shortId
 
     await copyToClipboard(`${window.origin}/bin/${data.shortId}`);
 
     if (!isPrivate) {
       const updatedPastes = [newPaste, ...savedPastes.slice(0, 9)]; // Keep only 10 most recent
       setSavedPastes(updatedPastes);
-      setCurrentPaste(newPaste);
     }
 
+    setCurrentPaste(newPaste);
     
     // Clear form
     setContent('');
