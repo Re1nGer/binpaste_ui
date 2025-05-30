@@ -360,11 +360,11 @@ const ExpiryDropdown = ({ value = 'never', onChange, isDarkMode = true, classNam
       {/* Preview */}
       <div className={`p-4 ${theme.preview} rounded-lg border`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-          <div className="flex items-center space-x-2 text-sm">
+{/*           <div className="flex items-center space-x-2 text-sm">
             <CalendarPlus className={`w-4 h-4 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />
             <span className={theme.tertiaryText}>Created:</span>
             <span className={`font-medium ${theme.primaryText}`}>{expirationInfo.created}</span>
-          </div>
+          </div> */}
           <div className="flex items-center space-x-2 text-sm">
             <CalendarX className={`w-4 h-4 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`} />
             <span className={theme.tertiaryText}>Expires:</span>
