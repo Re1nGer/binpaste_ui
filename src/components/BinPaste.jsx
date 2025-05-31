@@ -5,6 +5,7 @@ import { Copy, Share2, Save, Eye, Code, Download, Trash2, Moon, Sun } from 'luci
 import axios from '../network/axios';
 import Prism from 'prismjs'
 import ExpiryDropdown from './ExpiryDropdown';
+import { useClipboard } from '../hooks/useClipboard';
 
 
 
@@ -26,14 +27,14 @@ const BinPaste = () => {
 
   const navigate = useNavigate();
 
-  const { shortId,  } = useParams();
+  const { shortId } = useParams();
 
   const languages = [
     'text', 'javascript', 'python', 'java', 'cpp', 'html', 'css', 
     'json', 'xml', 'sql', 'bash', 'php', 'ruby', 'go', "csharp"
   ];
 
-  // Load saved pastes from memory on component mount
+  const { copyToClipboard } = useClipboard();
 
   useEffect(() => {
     Prism.highlightAll()
@@ -132,13 +133,13 @@ const BinPaste = () => {
     }
   }
 
-  const copyToClipboard = async (text) => {
+/*   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
     } catch (err) {
       console.log('Failed to copy');
     }
-  };
+  }; */
 
   const downloadPaste = () => {
     const blob = new Blob([content], { type: 'text/plain' });
