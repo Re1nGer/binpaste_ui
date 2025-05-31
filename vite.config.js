@@ -11,6 +11,13 @@ export default defineConfig({
             {
               languages: [
                 'javascript',
+                'java',
+                'cpp',
+                'sql',
+                'php',
+                'ruby',
+                'go',
+                'xml',
                  'css',
                  'html',
                  'python',
