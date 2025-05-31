@@ -133,14 +133,6 @@ const BinPaste = () => {
     }
   }
 
-/*   const copyToClipboard = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.log('Failed to copy');
-    }
-  }; */
-
   const downloadPaste = () => {
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -303,15 +295,6 @@ const BinPaste = () => {
                               {paste.language.toUpperCase()} • {paste.views} views
                             </p>
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deletePaste(paste.id);
-                            }}
-                            className={`p-1 rounded hover:bg-red-500 hover:bg-opacity-20 ${isDarkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
                         </div>
                       </div>
                     </Link>
@@ -347,14 +330,7 @@ const BinPaste = () => {
                     className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
                   >
                     <Copy className="w-3 h-3" />
-                    <span className="text-xs">Copy</span>
-                  </button>
-                  <button
-                    onClick={() => copyToClipboard(window.location.href)}
-                    className={`flex-1 flex items-center justify-center space-x-1 px-3 py-2 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                  >
-                    <Share2 className="w-3 h-3" />
-                    <span className="text-xs">Share</span>
+                    <span className="text-xs">Copy Content</span>
                   </button>
                 </div>
               </div>
